@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" th:href="@{/static/css/form.css}"/>
+</head>
+<body>
+<form action="findUser" method="post" id="login">
+    <h1>Log In</h1>
+    <fieldset id="inputs">
+        <input type="text" name="username" placeholder="用户名" autofocus required><br>
+        <input type="password" name="password" placeholder="密码" required><br>
+    </fieldset>
+    <fieldset id="actions">
+        <input type="submit" id="submit" value="登录">
+        <input type="button" id="reg" value="注册" onclick="window.location.href='register'">
+    </fieldset>
+
+</form>
+
+</body>
+</html>

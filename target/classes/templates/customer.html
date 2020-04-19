@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>客户管理</title>
+    <link rel="stylesheet" th:href="@{/static/css/style.css}"/>
+    <link rel="stylesheet" th:href="@{/static/css/bootstrap.min.css}" />
+    <link th:href="@{/static/css/metisMenu.min.css}" rel="stylesheet" />
+    <!-- Custom CSS -->
+    <link th:href="@{/static/css/sb-admin-2.css}" rel="stylesheet" />
+    <!-- Custom Fonts -->
+    <link th:href="@{/static/css/font-awesome.min.css}" rel="stylesheet" type="text/css" />
+    <link th:href="@{/static/css/boot-crm.css}" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div th:include="index::commonNav"></div>
+<div id="page-wrapper" style="background-color: #dddddd" th:fragment="commonNav">
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="page-header">客户管理</h1>
+        </div>
+        <!-- /.col-lg-12 -->
+    </div>
+    <!-- /.row -->
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <form class="form-inline" method="get"
+                  action="/customer/findLike">
+                <div class="form-group">
+                    <label for="customerName">客户名称</label>
+                    <input type="text" class="form-control" id="customerName" value="" name="cust_name" />
+                </div>
+                <div class="form-group">
+                    <label for="custIndustry">所属行业</label>
+                    <input	type="text" class="form-control" id="custIndustry"  name="cust_industry">
+                </div>
+                <button type="submit" class="btn btn-primary">查询</button>
+            </form>
+        </div>
+    </div>
+    <a href="#" class="btn btn-primary" data-toggle="modal"
+       data-target="#newCustomerDialog" onclick="clearCustomer()">新建</a>
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">客户信息列表</div>
+                <!-- /.panel-heading -->
+                <table class="table table-bordered table-striped">
+                    <thead>
+                    <tr>
+                        <th>编号</th>
+                        <th>客户名称</th>
+                        <th>客户昵称</th>
+                        <th>客户性别</th>
+                        <th>客户所属行业</th>
+                        <th>手机</th>
+                        <th>邮箱</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="cust:${customers}">
+                        <td th:text="${cust.cust_id}"></td>
+                        <td th:text="${cust.cust_name}"></td>
+                        <td th:text="${cust.cust_code}"></td>
+                        <td th:text="${cust.cust_sex==1 ? '男':'女'}"></td>
+                        <td th:text="${cust.cust_industry}"></td>
+                        <td th:text="${cust.cust_phone}"></td>
+                        <td th:text="${cust.cust_email}"></td>
+                        <td>
+                            <button type="button" href="#" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#customerEditDialog"
+                                    th:onclick= "editCustomer([[${cust.cust_id}]])">修改</button>
+                            <a href="#" class="btn btn-danger btn-xs" th:onclick="deleteCustomer([[${cust.cust_id}]])">删除</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+
+                <!--显示分页信息-->
+                <div class="modal-footer no-margin-top">
+                    <div class="col-md-6">
+                        当前第 [[${pageNum}]]页,共 [[${pages}]] 页.一共 [[${total}]] 条记录
+                    </div>
+                    <ul class="pagination pull-right no-margin">
+                        <li th:if="${hasPreviousPage}">
+                            <a th:href="'/customer/findAll?pageNum=1'">首页</a>
+                        </li>
+                        <li class="prev" th:if="${hasPreviousPage}">
+                            <a th:href="'/customer/findAll?pageNum='+${prePage}">
+                                <i class="ace-icon fa fa-angle-double-left"></i>
+                            </a>
+                        </li>
+                        <!--遍历条数-->
+                        <li th:each="nav:${navigatepageNums}">
+                            <a th:href="'/customer/findAll?pageNum='+${nav}" th:text="${nav}" th:if="${nav != pageNum}"></a>
+                            <span style="font-weight: bold;background: #6faed9;" th:if="${nav == pageNum}" th:text="${nav}" ></span>
+                        </li>
+                        <li class="next" th:if="${nextPage}">
+                            <a th:href="'/customer/findAll?pageNum='+${nextPage}">
+                                <i class="ace-icon fa fa-angle-double-right"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a th:href="'/customer/findAll?pageNum='+${pages}">尾页</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- /.panel-body -->
+            </div>
+            <!-- /.panel -->
+        </div>
+        <!-- /.col-lg-12 -->
+    </div>
+</div>
+<!-- 客户列表查询部分  end-->
+<!-- 创建客户模态框 -->
+<div class="modal fade" id="newCustomerDialog" tabindex="-1" role="dialog"
+     aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="">新建客户信息</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal" id="new_customer_form">
+                    <div class="form-group">
+                        <label for="new_customerName" class="col-sm-2 control-label">
+                            客户名称
+                        </label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="new_customerName" placeholder="客户名称" name="cust_name" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="new_customerFrom" style="float:left;padding:7px 15px 0 27px;">客户昵称</label>
+                        <div class="col-sm-10">
+                            <input	type="text" class="form-control" id="new_customerFrom" name="cust_code">
+                            </input>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="new_custLevel" style="float:left;padding:7px 15px 0 27px;">客户性别</label>
+                        <div class="col-sm-10">
+                            <select	type="radio" class="form-control" id="new_custLevel" name="cust_sex">
+                                <option value="1">男</option>
+                                <option value="2">女</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="new_custIndustry" style="float:left;padding:7px 15px 0 27px;">所属行业</label>
+                        <div class="col-sm-10">
+                            <input type="text"	class="form-control" id="new_custIndustry"  name="cust_industry">
+                            </input>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="new_mobile" class="col-sm-2 control-label">移动电话</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="new_mobile" placeholder="移动电话" name="cust_phone" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="new_zipcode" class="col-sm-2 control-label">邮箱</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="new_zipcode" placeholder="邮箱" name="cust_email" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" onclick="createCustomer()">创建客户</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 修改客户模态框 -->
+<div class="modal fade" id="customerEditDialog" tabindex="-1" role="dialog"
+     aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">修改客户信息</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal" id="edit_customer_form">
+                    <input type="hidden" id="edit_cust_id" name="cust_id"/>
+                    <div class="form-group">
+                        <label for="edit_customerName" class="col-sm-2 control-label">客户名称</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="edit_customerName" placeholder="客户名称" name="cust_name" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_customerFrom" style="float:left;padding:7px 15px 0 27px;">客户昵称</label>
+                        <div class="col-sm-10">
+                            <input	class="form-control" id="edit_customerFrom" name="cust_code">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_custIndustry" style="float:left;padding:7px 15px 0 27px;">所属行业</label>
+                        <div class="col-sm-10">
+                            <input	class="form-control" id="edit_custIndustry"  name="cust_industry">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_custSex" style="float:left;padding:7px 15px 0 27px;">客户性别</label>
+                        <div class="col-sm-10">
+                            <select	class="form-control" id="edit_custSex" name="cust_sex">
+                                <option value="1">男</option>
+                                <option value="2">女</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_mobile" class="col-sm-2 control-label">移动电话</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="edit_mobile" placeholder="移动电话" name="cust_phone" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_zipcode" class="col-sm-2 control-label">邮箱号码</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="edit_zipcode" placeholder="邮箱号码" name="cust_email" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" onclick="updateCustomer()">保存修改</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 引入js文件 -->
+<!-- jQuery -->
+<script th:src="@{/static/js/jquery-1.11.3.min.js}"></script>
+<!-- Bootstrap Core JavaScript -->
+<script th:src="@{/static/js/bootstrap.min.js}"></script>
+<!-- Metis Menu Plugin JavaScript -->
+<script th:src="@{/static/js/metisMenu.min.js}"></script>
+<!-- DataTables JavaScript -->
+<script th:src="@{/static/js/jquery.dataTables.min.js}"></script>
+<script th:src="@{/static/js/dataTables.bootstrap.min.js}"></script>
+<!-- Custom Theme JavaScript -->
+<script th:src="@{/static/js/sb-admin-2.js}"></script>
+<!-- 编写js代码 -->
+<script type="text/javascript">
+    //清空新建客户窗口中的数据
+    function clearCustomer() {
+        $("#new_customerName").val("");
+        $("#new_customerFrom").val("")
+        $("#new_custIndustry").val("")
+        $("#new_custLevel").val("")
+        $("#new_linkMan").val("");
+        $("#new_phone").val("");
+        $("#new_mobile").val("");
+        $("#new_zipcode").val("");
+        $("#new_address").val("");
+    }
+
+
+    // 创建客户
+    function createCustomer() {
+        $.post("/customer/insertCustomer",
+            $("#new_customer_form").serialize(),function(data){
+                if(data =="OK"){
+                    alert("客户创建成功！");
+                    window.location.reload();
+                }else{
+                    alert("客户创建失败！");
+                    window.location.reload();
+                }
+            });
+    }
+    // 通过id获取修改的客户信息
+    function editCustomer(id) {
+        $.ajax({
+            type:"get",
+            url:"/customer/editCustomer",
+            data:{"cust_id":id},
+            success:function(data) {
+                $("#edit_cust_id").val(data.cust_id);
+                $("#edit_customerName").val(data.cust_name);
+                $("#edit_customerFrom").val(data.cust_code);
+                $("#edit_customerSex").val(data.cust_sex);
+                $("#edit_custIndustry").val(data.cust_industry)
+                $("#edit_mobile").val(data.cust_phone);
+                $("#edit_zipcode").val(data.cust_email);
+
+            }
+        });
+    }
+    // 执行修改客户操作
+    function updateCustomer() {
+        $.post("/customer/updateCustomer",$("#edit_customer_form").serialize(),function(data){
+            if(data =="OK"){
+                alert("客户信息更新成功！");
+                window.location.reload();
+            }else{
+                alert("客户信息更新失败！");
+                window.location.reload();
+            }
+        });
+    }
+    // 删除客户
+    function deleteCustomer(id) {
+        if(confirm('确实要删除该客户吗?')) {
+            $.post("/customer/deleteCustomer",{"cust_id":id},
+                function(data){
+                    if(data =="OK"){
+                        alert("客户删除成功！");
+                        window.location.reload();
+                    }else{
+                        alert("删除客户失败！");
+                        window.location.reload();
+                    }
+                });
+        }
+    }
+</script>
+</body>
+</html>
